@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
 const { Users } = require('../models/user');
@@ -28,6 +29,30 @@ router.post('/register', async(req, res) => {
     } catch (er) {
         console.log(er);
         res.send({ status: 'error', error: er.message });
+    }
+})
+
+router.post('/login', async(req, res) => {
+
+    const email = req.body.email;
+    const password = req.body.password;
+
+
+    const user = await Users.findOne({ email: email }).lean();
+
+    if (!user) return res.json({ status: 'error', error: 'cannot find the user' })
+
+    if (user && bcrypt.compareSync(password, user.password)) {
+        const accessToken = await jwt.sign({
+                _id: user._id,
+                name: user.name,
+                role: user.role
+            },
+            process.env.ACCESS_TOKEN, { expiresIn: '10d' }
+        )
+        res.json({ status: 'Success', message: 'logged in successfully', accesstoken: accessToken })
+    } else {
+        res.json({ status: 'error', error: 'invalid email/pass' });
     }
 })
 
