@@ -4,6 +4,19 @@ const mongoose = require('mongoose');
 
 require('dotenv/config');
 
+//import routes
+const userRoute = require('./routes/user');
+
+
+//middleware
+app.use(express.json());
+
+
+//defining router
+const api = process.env.API;
+app.use(`${api}/users`, userRoute);
+
+
 //db connection
 mongoose.connect(process.env.DB_CONNECTION_URI, { useUnifiedTopology: true }).then(() => {
     console.log('connected to database');
